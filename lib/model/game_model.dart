@@ -1,23 +1,47 @@
 // lib/models/shop_data.dart
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../utils/audio_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/audio_manager.dart';
 
 class ShopData extends ChangeNotifier {
   int _credits;
   int _bet;
   final List<Map<String, dynamic>> _items;
-  final List<String> _gameSymbols;
 
+  // ✅ Final variables initialized directly
+  final List<String> _gameSymbols= [
+    'assets/images/symbols/symbol1.png',
+    'assets/images/symbols/symbol2.png',
+    'assets/images/symbols/symbol3.png',
+    'assets/images/symbols/symbol4.png',
+    'assets/images/symbols/symbol5.png',
+    'assets/images/symbols/symbol6.png',
+    'assets/images/symbols/symbol7.png',
+    'assets/images/symbols/symbol8.png',
+    'assets/images/symbols/symbol9.png',
+  ];
+
+  final List<String> _availableLanguages = [
+    'ENGLISH',
+    'DEUTSCH',
+    'ESPANOL',
+    'FRANCAIS',
+    'ITALIANO',
+    'POLSKI',
+    'PORTUGUES',
+  ];
+
+  // ✅ Non-final fields
   bool _ambientMusicOn;
   bool _soundFxOn;
   String _selectedLanguage;
-  final List<String> _availableLanguages;
 
   ShopData()
       : _credits = 842,
         _bet = 100,
+        _ambientMusicOn = true,
+        _soundFxOn = true,
+        _selectedLanguage = 'ENGLISH',
         _items = <Map<String, dynamic>>[
           {
             'name': 'Candy Land',
@@ -37,8 +61,8 @@ class ShopData extends ChangeNotifier {
             'name': 'Sugarpunk Forge',
             'image': 'assets/images/backgrounds/candyland.webp',
             'owned': true,
+            'selected': true,
             'price': null,
-            'selected':true,
           },
           {
             'name': 'Candy Cybercore',
@@ -63,7 +87,8 @@ class ShopData extends ChangeNotifier {
             'image': 'assets/images/backgrounds/alien.webp',
             'owned': false,
             'price': 3100,
-          }, {
+          },
+          {
             'name': 'Kingdom of Crumble',
             'image': 'assets/images/backgrounds/medieval.webp',
             'owned': false,
@@ -74,7 +99,8 @@ class ShopData extends ChangeNotifier {
             'image': 'assets/images/backgrounds/scifi.webp',
             'owned': false,
             'price': 4200,
-          }, {
+          },
+          {
             'name': 'Deep Sugar Reef',
             'image': 'assets/images/backgrounds/underwater.webp',
             'owned': false,
@@ -86,25 +112,19 @@ class ShopData extends ChangeNotifier {
             'owned': false,
             'price': 5500,
           },
-
-        ],
-        _gameSymbols = <String>[
-          'Apple', 'Banana', 'Cherry', 'Grape', 'Lemon', 'Orange', 'Strawberry', 'Watermelon'
-        ],
-        _ambientMusicOn = true,
-        _soundFxOn = true,
-        _selectedLanguage = 'ENGLISH',
-        _availableLanguages = <String>['ENGLISH', 'DEUTSCH', 'ESPANOL', 'FRANCAIS', 'ITALIANO', 'POLSKI', 'PORTUGUES'];
+        ];
 
   int get credits => _credits;
   int get bet => _bet;
   List<Map<String, dynamic>> get items => _items;
   List<String> get gameSymbols => _gameSymbols;
+  List<String> get availableLanguages => _availableLanguages;
 
   bool get ambientMusicOn => _ambientMusicOn;
   bool get soundFxOn => _soundFxOn;
   String get selectedLanguage => _selectedLanguage;
-  List<String> get availableLanguages => _availableLanguages;
+
+  final AudioManager _audioManager = AudioManager();
 
   void buyItem(int index) {
     if (index >= 0 && index < _items.length) {
@@ -131,6 +151,7 @@ class ShopData extends ChangeNotifier {
       }
     }
   }
+
   void increaseBet() {
     if (_bet == 1) _bet = 5;
     else if (_bet == 5) _bet = 10;
@@ -149,7 +170,6 @@ class ShopData extends ChangeNotifier {
     notifyListeners();
   }
 
-
   void spinGame() {
     if (_credits >= _bet) {
       _credits -= _bet;
@@ -162,13 +182,11 @@ class ShopData extends ChangeNotifier {
     notifyListeners();
   }
 
-  final AudioManager _audioManager = AudioManager();
-
   void toggleAmbientMusic() {
     _ambientMusicOn = !_ambientMusicOn;
     if (_ambientMusicOn) {
       _audioManager.toggleMusic(true);
-      _audioManager.playBackgroundMusic('sound/game_music.mp3'); // replace with your asset
+      _audioManager.playBackgroundMusic('sound/game_music.mp3');
     } else {
       _audioManager.toggleMusic(false);
     }
@@ -205,13 +223,10 @@ class ShopData extends ChangeNotifier {
 
   Future<void> loadAudioSettings() async {
     final prefs = await SharedPreferences.getInstance();
-
     _ambientMusicOn = prefs.getBool('ambientMusic') ?? true;
     _soundFxOn = prefs.getBool('soundFx') ?? true;
-
     _audioManager.toggleMusic(_ambientMusicOn);
     _audioManager.toggleSound(_soundFxOn);
-
     notifyListeners();
   }
 
@@ -222,3 +237,4 @@ class ShopData extends ChangeNotifier {
     }
   }
 }
+

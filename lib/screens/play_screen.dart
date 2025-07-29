@@ -1,5 +1,3 @@
-// lib/screens/play_screen.dart
-
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -19,42 +17,53 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
-  late List<String> _currentGridSymbols;
+  late List<String> _currentGridSymbols = [];
   final Random _random = Random();
+  bool _isSpinning = false;
 
   @override
-  void initState() {
-    super.initState();
-    _currentGridSymbols = _generateRandomGrid(
-      Provider.of<ShopData>(context, listen: false).gameSymbols,
-      30,
-    );
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_currentGridSymbols.isEmpty) {
+      final gameSymbols = Provider.of<ShopData>(context, listen: false).gameSymbols;
+      _currentGridSymbols = _generateRandomGrid(gameSymbols, 30);
+    }
   }
 
   List<String> _generateRandomGrid(List<String> symbols, int count) {
     return List.generate(count, (_) => symbols[_random.nextInt(symbols.length)]);
   }
 
-  void _onSpin() {
-    Provider.of<ShopData>(context, listen: false).spinGame();
+  void _onSpin() async {
+    final shopData = Provider.of<ShopData>(context, listen: false);
+
+    if (_isSpinning || shopData.credits < shopData.bet) return;
+    setState(() => _isSpinning = true);
+
+    if (shopData.ambientMusicOn && shopData.soundFxOn) {
+      shopData.playSymbolSound();
+    }
+    shopData.spinGame();
+
     setState(() {
-      _currentGridSymbols = _generateRandomGrid(
-        Provider.of<ShopData>(context, listen: false).gameSymbols,
-        30,
-      );
+      _currentGridSymbols = _generateRandomGrid(shopData.gameSymbols, 30);
+      _isSpinning = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body: Stack(
         children: [
           Positioned.fill(
-      child: Image.asset(
-        'assets/images/backgrounds/steam.webp',
-        fit: BoxFit.cover,
-             ),
+            child: Image.asset(
+              'assets/images/backgrounds/steam.webp',
+              fit: BoxFit.cover,
+            ),
           ),
           Positioned.fill(
             child: Container(
@@ -87,94 +96,103 @@ class _PlayScreenState extends State<PlayScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0),
-                child: Image.asset('assets/images/game_label.webp',
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Center(
+                child: SizedBox(
+                width: 300,
+                 child: Image.asset(
+                    'assets/images/game_label.webp',
+                    fit: BoxFit.fitWidth,
+                  ),
                 ),
               ),
-              Expanded(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          color: Colors.white.withOpacity(0.1),
-                          child: GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _currentGridSymbols.length,
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 6,
-                              mainAxisSpacing: 4,
-                              crossAxisSpacing: 4,
-                              childAspectRatio: 0.9,
-                            ),
-                            itemBuilder: (context, index) {
-                              return GameSymbolTile(fruitName: _currentGridSymbols[index], imagePath: '', label: '',);
-                            },
+              ),
+              SizedBox(
+                height: screenHeight * 0.43,
+                     child: Center( // Optional: center the grid
+                      child: Container(
+                     width: screenWidth * 0.25, // ✅ set width here
+                      height: (screenWidth * 0.25 / 6) * 5, // ✅ 6x5 grid height logic
+                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        color: Colors.white.withOpacity(0.05),
+                        child: GridView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 6,
+                            crossAxisSpacing: 1.5,
+                            mainAxisSpacing: 1.5,
+                            childAspectRatio: 1,
                           ),
+                          itemCount: _currentGridSymbols.length,
+                          itemBuilder: (context, index) {
+                            return GameSymbolTile(imagePath: _currentGridSymbols[index]);
+                          },
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
+              ),
+
               Consumer<ShopData>(
                 builder: (context, shopData, child) {
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0, top: 20.0),
+                    padding: const EdgeInsets.only(bottom: 12.0, top: 12.0),
                     child: Column(
                       children: [
-                        const Text(
-                          "PLACE YOUR BETS!",
-                          style: TextStyle(
+                        Text(
+                    shopData.credits < shopData.bet ? "NOT ENOUGH CREDIT!" : "PLACE YOUR BET!",
+                      style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
+                            fontSize: 15,
                             fontWeight: FontWeight.bold,
                             shadows: [
                               Shadow(offset: Offset(1.0, 1.0), blurRadius: 2.0, color: Colors.black54),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 6),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             GameControlButton(
                               assetPath: 'assets/images/button_spin.webp',
-                              onPressed: _onSpin, backgroundColor: null,
+                              onPressed: _onSpin,
+                              backgroundColor: null,
                             ),
-                            const SizedBox(width: 20),
-                                GameControlButton(
-                                  assetPath: 'assets/images/button_bet.webp',
-                                  onPressed: (){
-                                    showDialog(
-                                      context: context,
-                                       builder: (_) => const BetSettingsDialog(),
-                                            );
-                                    },
-                                ),
-                              ],
+                            const SizedBox(width: 12),
+                            GameControlButton(
+                              assetPath: 'assets/images/button_bet.webp',
+                              onPressed: () {
+                                final shopData = Provider.of<ShopData>(context, listen: false);
+                                shopData.playTapSound();
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => const BetSettingsDialog(),
+                                );
+                              },
                             ),
-
-                            const SizedBox(height: 30),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          margin: const EdgeInsets.symmetric(horizontal: 20),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: Colors.white24, width: 1),
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          margin: const EdgeInsets.symmetric(horizontal: 14),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               IconButton(
-                               icon: const Icon(Icons.settings, color: Colors.white, size: 28),
+                                icon: const Icon(Icons.settings, color: Colors.white, size: 22),
                                 onPressed: () {
+                                  final shopData = Provider.of<ShopData>(context, listen: false);
+                                  shopData.playTapSound();
                                   showDialog(
                                     context: context,
                                     builder: (ctx) => const SettingsDialog(),
@@ -185,7 +203,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                 "CREDIT: ${shopData.credits}",
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 18,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -193,18 +211,18 @@ class _PlayScreenState extends State<PlayScreen> {
                                 "BET: ${shopData.bet}",
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 18,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.info_outline, color: Colors.white, size: 28),
+                                icon: const Icon(Icons.info_outline, color: Colors.white, size: 22),
                                 onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
+                                  final shopData = Provider.of<ShopData>(context, listen: false);
+                                  shopData.playTapSound();
+                                  showDialog(
+                                    context:context,
                                       builder: (context) => const GameRulesScreen(),
-                                    ),
                                   );
                                 },
                               ),
@@ -223,6 +241,7 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 }
+
 extension on LinearGradient {
   BoxDecoration toBoxDecoration({BorderRadiusGeometry? borderRadius}) {
     return BoxDecoration(gradient: this, borderRadius: borderRadius);

@@ -109,7 +109,7 @@ class _MainAppScreenState extends State<MainAppScreen>
                         builder: (context) => const PlayScreen(),
                       ),
                     );
-                  }, icon:Icons.play_arrow , label: ''
+                  },
                 ),
                 const SizedBox(height: 20),
                 HomeActionButton(
@@ -123,7 +123,7 @@ class _MainAppScreenState extends State<MainAppScreen>
                         builder: (context) => const FortuneWheelScreen(),
                       ),
                     );
-                  }, icon:Icons.casino  , label: ''
+                  },
                 ),
                 const SizedBox(height: 20),
                 HomeActionButton(
@@ -137,7 +137,7 @@ class _MainAppScreenState extends State<MainAppScreen>
                         builder: (context) => const ShopScreen(),
                       ),
                     );
-                  }, icon: Icons.store, label: '' ,
+                  },
                 ),
               ],
             ),

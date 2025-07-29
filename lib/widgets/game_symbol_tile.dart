@@ -1,38 +1,31 @@
-// lib/widgets/game_symbol_tile.dart
-
 import 'package:flutter/material.dart';
 
 class GameSymbolTile extends StatelessWidget {
   final String imagePath;
-  final String label;
 
-  const GameSymbolTile({
-    super.key,
-    required this.imagePath,
-    required this.label, required String fruitName,
-  });
+  const GameSymbolTile({super.key, required this.imagePath});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 60,
-          height: 60,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.maxWidth;
+
+        return Container(
+          margin: const EdgeInsets.all(1),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            image: DecorationImage(
-              image: AssetImage(imagePath),
-              fit: BoxFit.cover,
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white.withOpacity(0.08),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(size * 0.15),
+            child: Image.asset(
+              imagePath,
+              fit: BoxFit.contain,
             ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white),
-        ),
-      ],
+        );
+      },
     );
   }
 }

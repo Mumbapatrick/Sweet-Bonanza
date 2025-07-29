@@ -45,10 +45,16 @@ class _FortuneWheelScreenState extends State<FortuneWheelScreen>
     ).animate(_animationController);
   }
 
-  void _onSpin(ShopData shopData) async {
+  void _onSpin(BuildContext context) async {
+    final shopData = Provider.of<ShopData>(context, listen: false);
+
     if (_isSpinning || shopData.credits < shopData.bet) return;
     setState(() => _isSpinning = true);
+
     shopData.spinGame();
+    if (shopData.ambientMusicOn && shopData.soundFxOn) {
+      shopData.playWheelSpinSound();
+    }
 
     final int targetSegment = _random.nextInt(_wheelSegments.length);
     final double multiplier = _wheelSegments[targetSegment]['value'];
@@ -70,7 +76,9 @@ class _FortuneWheelScreenState extends State<FortuneWheelScreen>
     _animationController.reset();
     await _animationController.forward();
 
+    shopData.playWheelStopSound();
     shopData.winCredits((shopData.bet * multiplier).round());
+
     _currentWheelAngle = _wheelRotationAnimation.value % (2 * pi);
     setState(() => _isSpinning = false);
   }
@@ -83,6 +91,7 @@ class _FortuneWheelScreenState extends State<FortuneWheelScreen>
 
   @override
   Widget build(BuildContext context) {
+    final shopData = Provider.of<ShopData>(context);
     return Scaffold(
       body: Stack(
         children: [
@@ -177,8 +186,8 @@ class _FortuneWheelScreenState extends State<FortuneWheelScreen>
                 ),
               ),
 
-              const Text(
-                      "SPIN THE WHEEL!",
+              Text(
+                shopData.credits < shopData.bet ? "NOT ENOUGH CREDITS" : "SPIN THE WHEEL!",
                         style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -204,12 +213,14 @@ class _FortuneWheelScreenState extends State<FortuneWheelScreen>
                           children: [
                             GameControlButton(
                               assetPath: 'assets/images/button_spin.webp',
-                              onPressed: () => _onSpin(shopData),
+                              onPressed: () => _onSpin(context),
                             ),
                             const SizedBox(width: 20),
                             GameControlButton(
                               assetPath: 'assets/images/button_bet.webp',
                               onPressed: () {
+                                final shopData = Provider.of<ShopData>(context, listen: false);
+                                shopData.playTapSound();
                                 showDialog(
                                   context: context,
                                   builder: (_) => const BetSettingsDialog(),
@@ -222,17 +233,14 @@ class _FortuneWheelScreenState extends State<FortuneWheelScreen>
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           margin: const EdgeInsets.symmetric(horizontal: 20),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: Colors.white24, width: 1),
-                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.settings, color: Colors.white, size: 28),
                                 onPressed: () {
+                                  final shopData = Provider.of<ShopData>(context, listen: false);
+                                  shopData.playTapSound();
                                   showDialog(
                                     context: context,
                                     builder: (_) => const SettingsDialog(),
@@ -258,6 +266,8 @@ class _FortuneWheelScreenState extends State<FortuneWheelScreen>
                               IconButton(
                                 icon: const Icon(Icons.info_outline, color: Colors.white, size: 28),
                                 onPressed: () {
+                                  final shopData = Provider.of<ShopData>(context, listen: false);
+                                  shopData.playTapSound();
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
