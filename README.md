@@ -1,16 +1,22 @@
-# sweet_bonanza
+ Sweet Bonanza
 
-A new Flutter project.
+A colorful and engaging Flutter game inspired by the classic *Sweet Bonanza* theme. This mobile-friendly app features fun animations, a spinning fortune wheel, interactive gameplay, and a sweet visual style that makes every tap exciting.
 
-## Getting Started
+Features
 
-This project is a starting point for a Flutter application.
+- 🎡 Fortune Wheel with randomized rewards  
+- 💰 In-game currency and betting system  
+- 🎮 Multiple game screens (Play, Settings, Rules, Support, Privacy Policy)  
+- 🎨 Custom assets for fruity symbols and UI  
+- ⚙️ Responsive and animated interface  
+- 🚀 Smooth user experience on both Android and Web
 
-A few resources to get you started if this is your first Flutter project:
+Getting Started
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+To run the app locally:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+git clone https://github.com/Mumbapatrick/Sweet-Bonanza.git
+cd Sweet-Bonanza
+flutter pub get
+flutter run or flutter run -d chrome --release 
